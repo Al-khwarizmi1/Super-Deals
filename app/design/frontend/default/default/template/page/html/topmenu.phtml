@@ -1,0 +1,50 @@
+<?php
+/**
+ * @name            :  Super Deals
+ * @version         :  1.0
+ * @author          :  Apptha - http://www.apptha.com
+ * @copyright       :  Copyright (C) 2013 Powered by Apptha
+ * @license         :  http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @Creation Month  :  April 2013
+ *
+ * */
+
+?>
+<?php
+/**
+ * Top menu for store
+ *
+ * @see Mage_Page_Block_Html_Topmenu
+ */
+?>
+<?php 
+$dealsEnable1  =  Mage::helper('core/data')->isModuleEnabled('Apptha_Superdeals');
+$dealsEnable  =   intval($dealsEnable1);
+
+$advanceOption1 = Mage::getStoreConfig('advanced/modules_disable_output/Apptha_Superdeals');
+$advanceOption = intval($advanceOption1);
+
+$page   	  =  $_SERVER['REQUEST_URI'];
+$page   	  =  explode('/',$page);
+$pageUrl	  =  $page;
+?>
+<?php
+ $STORE_CONFIG_MODULE_ENABLED = Mage::getStoreConfig('Apptha_Superdeals');
+ $STORE_CONFIG_DEALS_ENABLED = Mage::getStoreConfig('superdeals/superdeals_group/deals_enable');
+?>
+<?php $_menu = $this->getHtml('level-top') ?>
+<?php if($_menu): ?>
+<div class="nav-container">
+    <ul id="nav">
+        <?php echo $_menu ?>
+        
+        <?php if (($STORE_CONFIG_DEALS_ENABLED == 1) && ( $dealsEnable == 1)&& ( $advanceOption == 0)): ?>
+         <li class="level0 <?php if (in_array('deals', $pageUrl))
+            echo "active header_font_active";?>">
+             <a href="<?php echo $this->getUrl('deals');?>" class="level-top" ><span><?php echo $this->__('Deals') ?></span></a>
+        </li>       
+       
+        <?php endif ?>
+    </ul>
+</div>
+<?php endif ?>

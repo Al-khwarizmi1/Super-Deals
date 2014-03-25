@@ -1,0 +1,81 @@
+<?php
+/**
+ * @name            :  Super Deals
+ * @version         :  1.1
+ * @author          :  Apptha - http://www.apptha.com
+ * @copyright       :  Copyright (C) 2013 Powered by Apptha
+ * @license         :  http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @Creation Month  :  April 2013
+ *
+ * */
+?>
+<?php 
+$_products = $this->getProductCollection();
+?>
+<?php
+$_coreHelper = $this->helper('core');
+$_taxHelper  = $this->helper('tax'); 
+?>
+<?php
+$STORE_CONFIG_DEALS_ENABLED = Mage::getStoreConfig('superdeals/superdeals_group/deals_enable');
+$dealsEnable  =  Mage::helper('core/data')->isModuleEnabled('Apptha_Superdeals');
+$dealsEnable  =   intval($dealsEnable);
+
+$advanceOption = Mage::getStoreConfig('advanced/modules_disable_output/Apptha_Superdeals');
+$advanceOption = intval($advanceOption);
+?>
+<?php if (($STORE_CONFIG_DEALS_ENABLED == 1) && ( $dealsEnable == 1)&& ( $advanceOption == 0)): ?>
+<div class="block block-dealtopselling">
+    <div class="block-title">
+        <strong>
+            <span><?php echo $this->__('Top Selling Deals') ?></span>
+        </strong>
+    </div>
+    <div class="block-content">        
+	<?php if(count($_products) > 0): ?>
+        <ol class="mini-products-list" id="topselling-sidebar">
+            
+        <?php foreach ($_products  as $_item): ?>
+		<?php
+		$savingsdollarvalue = ($_item->getPrice() - $_item->getSpecialPrice());
+		$original_price = $_item->getPrice(); //get orginal price
+		$discount_price = $_item->getSpecialPrice(); //get the discount amount
+		$savings = $original_price - $discount_price; //get the saving amount from orginal price - discount price
+		$savings_percentage = round(($savings / $original_price) * 100, 0);
+		?>
+            <?php for($i=0;$i<1;$i++)
+            {?>		
+	    <li class="item">
+                <a class="product-image" href="<?php echo $_item->getProductUrl() ?>" style="overflow: hidden; height: 50px">
+                    <img src="<?php echo $this->helper('catalog/image')->init($_item, 'thumbnail') ?>" width="60px" alt="<?php echo $this->htmlEscape($_item->getName()) ?>"  />
+                </a>
+                <div class="product-details">
+                    <p class="product-name">
+                        <a href="<?php echo $_item->getProductUrl() ?>"><?php echo $this->htmlEscape($_item->getName()) ?></a>
+                    </p>
+                    <span class="original_price" > 
+                                        <?php echo $_coreHelper->currency($_item->getPrice(), true, false); ?>
+                    </span>
+                    <span class="offer_price"> 
+                            <?php echo $_coreHelper->currency($_item->getSpecialPrice(), true, false); ?>
+                    </span>
+                    
+                    <span class="special-price" style="display: block; float: left;" > 
+                            <span class="discount_label" > <?php echo $this->__('Discount:') ?> </span> 
+                            <span class="discount_price" <?php echo $_id ?>
+                                <?php echo $this->getIdSuffix() ?>> <?php echo $savings_percentage, '%'; //display discount amount ?>
+                            </span> 
+                    </span>
+                </div>
+            </li>        
+        <?php } endforeach ?>
+        </ol>
+          <script type="text/javascript">decorateList('topselling-sidebar');</script>
+        <?php else: ?>
+		<div class="empty">
+		<?php echo $this->__('Currently no deals available') ?>
+		</div>
+        <?php endif ?>
+    </div>
+   </div> 
+		<?php endif ?>
