@@ -1,146 +1,139 @@
 <?php
 
 /**
- * @name            :  Super Deals
- * @version         :  1.1
- * @author          :  Apptha - http://www.apptha.com
- * @copyright       :  Copyright (C) 2013 Powered by Apptha
- * @license         :  http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- * @Creation Month  :  April 2013
+ *
+ * @package         Super Deals
+ * @version         1.1
+ * @since           Magento 1.5
+ * @author          Apptha Team
+ * @copyright       Copyright (C) 2014 Powered by Apptha
+ * @license         http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @Creation Date   August 2012
+ * @Modified By     Murali B
+ * @Modified Date   Mar 28 2014
  *
  * */
-
 class Apptha_Superdeals_Block_Banner extends Mage_Catalog_Block_Product_Abstract {
-	public function getProductsLimit()    {
-		$count = Mage::helper('superdeals')->getOfferSlider();
-		if($count)
-		return $count;
-		return 5;
-	}
-	public function getProductCollectionHigher()
-	{
-		$storeId    =	Mage::app()->getStore()->getId();
-		$product    = 	Mage::getModel('catalog/product');
-		$todayDate  = 	$product->getResource()->formatDate(time());
-		$products   = 	$product->setStoreId($storeId)->getCollection()
-								->addAttributeToSelect(array('name', 'price', 'small_image'), 'left')
-								->addAttributeToSelect(array('special_price', 'special_from_date', 'special_to_date'), 'left')
-								->addAttributeToSelect('status')
-								->addAttributeToSort('special_price','asc')
-								->addAttributeToFilter('special_to_date', array('date'=>true, 'from'=> $todayDate));
-		Mage::getSingleton('catalog/product_status')->addVisibleFilterToCollection($products);
-		Mage::getSingleton('catalog/product_visibility')->addVisibleInCatalogFilterToCollection($products);
-		return $products;
-	}
-	
-	public function getProductCollectionLower()
-	{
-		$storeId    =	Mage::app()->getStore()->getId();
-		$product    = 	Mage::getModel('catalog/product');
-		$todayDate  = 	$product->getResource()->formatDate(time());
-		$products   = 	$product->setStoreId($storeId)->getCollection()
-								->addAttributeToSelect(array('name', 'price', 'small_image'), 'left')
-								->addAttributeToSelect(array('special_price', 'special_from_date', 'special_to_date'), 'left')
-								->addAttributeToSelect('status')
-								->addAttributeToSort('special_price','desc')
-								->addAttributeToFilter('special_to_date', array('date'=>true, 'from'=> $todayDate));
-		Mage::getSingleton('catalog/product_status')->addVisibleFilterToCollection($products);
-		Mage::getSingleton('catalog/product_visibility')->addVisibleInCatalogFilterToCollection($products);
-		return $products;
-	}
-	
-	public function getProductCollectionRandom()
-	{
-		$storeId    	= Mage::app()->getStore()->getId();
-		$todayDate      = Mage::app()->getLocale()->date()->toString(Varien_Date::DATETIME_INTERNAL_FORMAT);
-		$tomorrow       = mktime(0, 0, 0, date('m'), date('d') + 1, date('y'));
-		$dateTomorrow   = date('m/d/y', $tomorrow);
-		$products 		= Mage::getModel('catalog/product')
-		->getCollection()
-		->addAttributeToFilter('special_price', array('neq'=>''))
-		->addAttributeToFilter('special_from_date', array('date' => true, 'to' => $todayDate))
-		->addAttributeToFilter('special_to_date', array('or' => array(0 => array('date' => true, 'from' => $dateTomorrow), 1 => array('is' => new Zend_Db_Expr('null')))), 'left');
-		
-		Mage::getSingleton('catalog/product_status')->addVisibleFilterToCollection($products);
-		Mage::getSingleton('catalog/product_visibility')->addVisibleInCatalogFilterToCollection($products);
-		$products->getSelect()->order('rand()');
-		return $products;
-	}
 
-	public function getProductCollection()
-	{
-		$storeId = Mage::app()->getStore()->getId();
-		$count = count($productCollection);
-		$order = (int)Mage::getStoreConfig('superdeals/slider/slide_order');
-		if($order == 1){
-			$productCollection = $this->getProductCollectionHigher();
+    public function getProductsLimit() {
+        $count = Mage::helper('superdeals')->getOfferSlider();
+        if ($count)
+            return $count;
+        return 5;
+    }
 
-		}
-		elseif($order == 2){
-			$productCollection = $this->getProductCollectionLower();
-						
-		}
-		elseif($order == 3){
-			$productCollection = $this->getProductCollectionRandom();
-		}
-		else {
-			$productCollection = $this->getProductCollectionRandom();
-			
-		}
-		
-		$sameProduct = array();
-		$checkedProducts = new Varien_Data_Collection();
-		foreach($productCollection as $key => $prod) {
+    public function getProductCollectionHigher() {
+        $storeId = Mage::app()->getStore()->getId();
+        $product = Mage::getModel('catalog/product');
+        $todayDate = $product->getResource()->formatDate(time());
+        $products = $product->setStoreId($storeId)->getCollection()
+                ->addAttributeToSelect(array('name', 'price', 'small_image'), 'left')
+                ->addAttributeToSelect(array('special_price', 'special_from_date', 'special_to_date'), 'left')
+                ->addAttributeToSelect('status')
+                ->addAttributeToSort('special_price', 'asc')
+                ->addAttributeToFilter('special_to_date', array('date' => true, 'from' => $todayDate));
+        Mage::getSingleton('catalog/product_status')->addVisibleFilterToCollection($products);
+        Mage::getSingleton('catalog/product_visibility')->addVisibleInCatalogFilterToCollection($products);
+        return $products;
+    }
 
-			$parentId = $this->getParentId($prod);
+    public function getProductCollectionLower() {
+        $storeId = Mage::app()->getStore()->getId();
+        $product = Mage::getModel('catalog/product');
+        $todayDate = $product->getResource()->formatDate(time());
+        $products = $product->setStoreId($storeId)->getCollection()
+                ->addAttributeToSelect(array('name', 'price', 'small_image'), 'left')
+                ->addAttributeToSelect(array('special_price', 'special_from_date', 'special_to_date'), 'left')
+                ->addAttributeToSelect('status')
+                ->addAttributeToSort('special_price', 'desc')
+                ->addAttributeToFilter('special_to_date', array('date' => true, 'from' => $todayDate));
+        Mage::getSingleton('catalog/product_status')->addVisibleFilterToCollection($products);
+        Mage::getSingleton('catalog/product_visibility')->addVisibleInCatalogFilterToCollection($products);
+        return $products;
+    }
 
-			if($parentId == '') {
-				continue;
-			}
+    public function getProductCollectionRandom() {
+        $storeId = Mage::app()->getStore()->getId();
+        $todayDate = Mage::app()->getLocale()->date()->toString(Varien_Date::DATETIME_INTERNAL_FORMAT);
+        $tomorrow = mktime(0, 0, 0, date('m'), date('d') + 1, date('y'));
+        $dateTomorrow = date('m/d/y', $tomorrow);
+        $products = Mage::getModel('catalog/product')
+                ->getCollection()
+                ->addAttributeToFilter('special_price', array('neq' => ''))
+                ->addAttributeToFilter('special_from_date', array('date' => true, 'to' => $todayDate))
+                ->addAttributeToFilter('special_to_date', array('or' => array(0 => array('date' => true, 'from' => $dateTomorrow), 1 => array('is' => new Zend_Db_Expr('null')))), 'left');
 
-			$product = Mage::getModel('catalog/product')->setStoreId($storeId)->load($this->getParentId($prod));
+        Mage::getSingleton('catalog/product_status')->addVisibleFilterToCollection($products);
+        Mage::getSingleton('catalog/product_visibility')->addVisibleInCatalogFilterToCollection($products);
+        $products->getSelect()->order('rand()');
+        return $products;
+    }
 
-			// if the product is not visible or is disabled
-			if(!$product->isVisibleInCatalog()) {
-				continue;
-			}
+    public function getProductCollection() {
+        $storeId = Mage::app()->getStore()->getId();
+        $count = count($productCollection);
+        $order = (int) Mage::getStoreConfig('superdeals/slider/slide_order');
+        if ($order == 1) {
+            $productCollection = $this->getProductCollectionHigher();
+        } elseif ($order == 2) {
+            $productCollection = $this->getProductCollectionLower();
+        } elseif ($order == 3) {
+            $productCollection = $this->getProductCollectionRandom();
+        } else {
+            $productCollection = $this->getProductCollectionRandom();
+        }
 
-			// if two or more simple products of the same configurable product are ordered
-			if(in_array($product->getId(),$sameProduct)) {
-				continue;
-			}
+        $sameProduct = array();
+        $checkedProducts = new Varien_Data_Collection();
+        foreach ($productCollection as $key => $prod) {
 
-			$sameProduct[] = $product->getId();
+            $parentId = $this->getParentId($prod);
 
-			if (!$checkedProducts->getItemById($parentId)) {
-				$checkedProducts->addItem($product);
-			}
+            if ($parentId == '') {
+                continue;
+            }
 
-			if(count($checkedProducts) >= $this->getProductsLimit()) {
-				break;
-			}
-		}
-		$productCollection = $checkedProducts;
-		return $productCollection;
-	}
+            $product = Mage::getModel('catalog/product')->setStoreId($storeId)->load($this->getParentId($prod));
 
-	public function getParentId($product)
-	{
-		$parentId = '';
+            // if the product is not visible or is disabled
+            if (!$product->isVisibleInCatalog()) {
+                continue;
+            }
 
-		if($product->getVisibility() != '1') {
-			$parentId = $product->getId();
+            // if two or more simple products of the same configurable product are ordered
+            if (in_array($product->getId(), $sameProduct)) {
+                continue;
+            }
 
-		}
-		else {
-			// get parent id if the product is not visible
-			// this means that the product is associated with a configurable product
-			$parentIdArray = $product->loadParentProductIds()->getData('parent_product_ids');
+            $sameProduct[] = $product->getId();
 
-			if(!empty($parentIdArray)) {
-				$parentId = $parentIdArray[0];
-			}
-		}
-		return $parentId;
-	}
+            if (!$checkedProducts->getItemById($parentId)) {
+                $checkedProducts->addItem($product);
+            }
+
+            if (count($checkedProducts) >= $this->getProductsLimit()) {
+                break;
+            }
+        }
+        $productCollection = $checkedProducts;
+        return $productCollection;
+    }
+
+    public function getParentId($product) {
+        $parentId = '';
+
+        if ($product->getVisibility() != '1') {
+            $parentId = $product->getId();
+        } else {
+            // get parent id if the product is not visible
+            // this means that the product is associated with a configurable product
+            $parentIdArray = $product->loadParentProductIds()->getData('parent_product_ids');
+
+            if (!empty($parentIdArray)) {
+                $parentId = $parentIdArray[0];
+            }
+        }
+        return $parentId;
+    }
+
 }
