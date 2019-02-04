@@ -1,0 +1,452 @@
+<?php
+/**
+ * Apptha
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ *
+ * ==============================================================
+ *                 MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category    Apptha
+ * @package     Apptha_SuperDeals
+ * @version    0.1.2
+ * @author      Apptha Team <developers@contus.in>
+ * @copyright   Copyright (c) 2014 Apptha. (http://www.apptha.com)
+ * @license     http://www.apptha.com/LICENSE.txt
+ * 
+ */
+?>
+<?php
+/* Count for timer calculation declared here */
+$_productCollection = $this->getLoadedProductCollection();
+$_helper = $this->helper('catalog/output');
+$_coreHelper = $this->helper('core');
+
+/* Count for timer calculation declared here */
+if (!Mage::registry('timer_count')) :
+$count = 1;    Mage::register('timer_count', $count);
+else:
+$count = Mage::registry('timer_count');
+$count = $count + 1;
+Mage::unregister('timer_count');
+Mage::register('timer_count', $count);
+endif;
+?>
+<?php
+
+$STORE_CONFIG_DEALS_ENABLED = Mage::getStoreConfig('superdeals/superdeals_group/deals_enable');
+$dealsEnable   = Mage::helper('core/data')->isModuleEnabled('Apptha_Superdeals');
+$dealsEnable   = intval($dealsEnable);
+$advanceOption = Mage::getStoreConfig('advanced/modules_disable_output/Apptha_Superdeals');
+$advanceOption = intval($advanceOption);
+
+?>
+<?php
+$STORE_CONFIG_DEALS_ENABLED = Mage::getStoreConfig('superdeals/superdeals_group/deals_enable');
+$STORE_CONFIG_CUSTOM_COLOR_ENABLED = Mage::getStoreConfig('superdeals/timer/custom_color_enable');
+$STORE_CONFIG_TIMER_ENABLED = Mage::getStoreConfig('superdeals/timer/show_timer');
+$timer_active = Mage::getStoreConfig('superdeals/timer/show_timer');
+$timer_color = Mage::getStoreConfig('superdeals/timer/text');
+$timer_background = Mage::getStoreConfig('superdeals/timer/background_color');
+$caption_color = Mage::getStoreConfig('superdeals/timer/caption_color');
+$heading_color = Mage::getStoreConfig('superdeals/timer/heading_text_color');
+
+$save_dis_lable_color = Mage::getStoreConfig('superdeals/timer/save_dis_lable_color');
+$save_dis_price_color = Mage::getStoreConfig('superdeals/timer/save_dis_price_color');
+$save_dis_font_size = Mage::getStoreConfig('superdeals/timer/save_dis_font_size');
+$save_cat_time_font_size = Mage::getStoreConfig('superdeals/timer/save_cat_time_font_size');
+$save_view_time_font_size = Mage::getStoreConfig('superdeals/timer/save_view_time_font_size');
+
+$timer_head = Mage::getStoreConfig('superdeals/timer/timer_head');
+ 
+?>
+<?php if(($STORE_CONFIG_CUSTOM_COLOR_ENABLED == 1)&& ( $dealsEnable == 1)&& ( $advanceOption == 0)){?>
+<style type="text/css">
+ 	/* design for Category page */
+    .deal-price-box .price-label {color: #<?php echo $save_dis_lable_color ?>; }
+    .deal-price-box .price {color: #<?php echo $save_dis_price_color ?>; }
+    .dealtimer_listpage .dealtimer_listpage_timer span, .dealtimer_listpage .dealtimer_listpage_timer{ color: #<?php echo $timer_color ?>; font-size:<?php echo $save_cat_time_font_size ?>px; }
+</style>
+<?php } ?>
+
+
+
+<?php
+//VARIABLES FOR CURRENT DATE AND DATE OF $ PREVIOUS DAYS USED FOR PRODUCT RIBBON
+$todTime = Mage::getModel('core/date')->timestamp(time());
+$now = date('Y-m-d' . ' 00:00:00', $todTime);
+$startArrival = Mage::getModel('core/date')->timestamp(date('Y-m-d' . ' 00:00:00', strtotime("-4 Days")));
+$newArrivalDate = date('Y-m-d' . ' 00:00:00', $startArrival);
+?>
+<?php
+$value = $this->getRequest()->getParam('value');
+$mode  = $this->getRequest()->getParam('mode');
+?>
+<?php if (($STORE_CONFIG_DEALS_ENABLED == 1) && ( $dealsEnable == 1)&& ( $advanceOption == 0)): ?>
+<?php if (!$_productCollection->count()): ?>
+<div class="category-products">
+	<div class="page-title">
+		<h1>
+		<?php echo $this->__('Deals') ?>
+		</h1>
+	</div>
+	<?php echo $this->getToolbarHtml() ?>
+	<div class="app_dealz_nav">
+		<div class="deal_filters">
+			<span class="filter"><?php echo $this->__('Filters:') ?> </span> <span><?php echo $this->__('Category') ?>
+			</span> <select name="browser" onchange="setLocation(this.value)">
+				<option
+					value="<?php echo $this->getUrl('deals'); if(!empty($value)):echo '?value='.$value;endif; if(!empty($mode)):echo '&mode='.$mode;endif; ?>">
+					<?php echo $this->__('All Categories');?>
+				</option>
+				<?php
+				$obj = new Mage_Catalog_Block_Navigation();
+				$store_cats = $obj->getStoreCategories();
+				foreach ($store_cats as $cat) {?>
+				<option
+					value="<?php echo $this->getUrl('deals');echo '?id='.$cat->getId();if(!empty($value)):echo '&value='.$value;endif; if(!empty($mode)):echo '&mode='.$mode;endif; ?>"
+					<?php if($this->getRequest()->getParam('id')==$cat->getId()):echo ' selected="selected" '; endif; ?>>
+					<?php echo $cat->getName(); ?>
+				</option>
+				<?php }?>
+			</select> <span><?php echo $this->__('Period') ?> </span>
+			<?php  $ct =$this->getRequest()->getParam('id'); ?>
+			<select onchange="setLocation(this.value)">
+				<option
+					value="<?php echo $this->getUrl('deals').'?value=0'; if($this->getRequest()->getParam('mode')=='list'):echo '&mode=list';endif; if(isset($ct)):echo '&id='.$ct;endif;?>"
+					<?php if($this->getRequest()->getParam('value')==0):echo ' selected="selected" '; endif; ?>>
+					<?php echo $this->__('All Active Deals');?>
+				</option>
+				<option
+					value="<?php echo $this->getUrl('deals').'?value=3'; if($this->getRequest()->getParam('mode')=='list'):echo '&mode=list';endif; if(isset($ct)):echo '&id='.$ct;endif; ?>"
+					<?php if($this->getRequest()->getParam('value')==3):echo ' selected="selected" '; endif; ?>>
+					<?php echo $this->__('This Month');?>
+				</option>
+
+				<option
+					value="<?php echo $this->getUrl('deals').'?value=2'; if($this->getRequest()->getParam('mode')=='list'):echo '&mode=list';endif; if(isset($ct)):echo '&id='.$ct;endif;?>"
+					<?php if($this->getRequest()->getParam('value')==2):echo ' selected="selected" '; endif; ?>>
+					<?php echo $this->__('This Week');?>
+				</option>
+				<option
+					value="<?php echo $this->getUrl('deals').'?value=1'; if($this->getRequest()->getParam('mode')=='list'):echo '&mode=list';endif; if(isset($ct)):echo '&id='.$ct;endif;?>"
+					<?php if($this->getRequest()->getParam('value')==1):echo ' selected="selected" '; endif;  ?>>
+					<?php echo $this->__('Today');?>
+				</option>
+				
+			</select>
+		</div>
+	</div>
+	<p class="note-msg">
+	<?php echo $this->__('Currently no deals available. Select Some Other Category.') ?>
+	</p>
+</div>
+	<?php else: ?>
+<div class="category-products">
+	<div class="page-title">
+		<h1>
+		<?php echo $this->__('Deals') ?>
+		</h1>
+	</div>
+	<?php echo $this->getToolbarHtml() ?>
+	<?php if(empty($sidebar)): ?>
+	<?php if(empty($mostviewed)): ?>
+	<div class="deal_filters">
+		<span class="filter"><?php echo $this->__('Filters:') ?> </span> <span><?php echo $this->__('Category') ?>
+		</span> <select name="browser" onchange="setLocation(this.value)">
+			<option
+				value="<?php echo $this->getUrl('deals'); if(!empty($value)):echo '?value='.$value;endif; if(!empty($mode)):echo '&mode='.$mode;endif; ?>">
+				<?php echo $this->__('All Categories');?>
+			</option>
+			<?php
+			$obj = new Mage_Catalog_Block_Navigation();
+			$store_cats = $obj->getStoreCategories();
+			foreach ($store_cats as $cat) {?>
+			<option
+				value="<?php echo $this->getUrl('deals');echo '?id='.$cat->getId();if(!empty($value)):echo '&value='.$value;endif; if(!empty($mode)):echo '&mode='.$mode;endif; ?>"
+				<?php if($this->getRequest()->getParam('id')==$cat->getId()):echo ' selected="selected" '; endif; ?>>
+				<?php echo $this->__($cat->getName()); ?>
+			</option>
+			<?php } ?>
+		</select>
+		<?php  $ct =$this->getRequest()->getParam('id'); ?>
+		<span><?php echo $this->__('Period') ?> </span> <select
+			onchange="setLocation(this.value)">
+			<option
+				value="<?php echo $this->getUrl('deals').'?value=0'; if($this->getRequest()->getParam('mode')=='list'):echo '&mode=list';endif; if(isset($ct)):echo '&id='.$ct;endif;?>"
+				<?php if($this->getRequest()->getParam('value')==0):echo ' selected="selected" '; endif; ?>>
+				<?php echo $this->__('All Active Deals'); ?>
+			</option>
+			<option
+				value="<?php echo $this->getUrl('deals').'?value=3'; if($this->getRequest()->getParam('mode')=='list'):echo '&mode=list';endif; if(isset($ct)):echo '&id='.$ct;endif; ?>"
+				<?php if($this->getRequest()->getParam('value')==3):echo ' selected="selected" '; endif; ?>>
+				<?php echo $this->__('This Month'); ?>
+			</option>
+				<option
+				value="<?php echo $this->getUrl('deals').'?value=2'; if($this->getRequest()->getParam('mode')=='list'):echo '&mode=list';endif; if(isset($ct)):echo '&id='.$ct;endif;?>"
+				<?php if($this->getRequest()->getParam('value')==2):echo ' selected="selected" '; endif; ?>>
+				<?php echo $this->__('This Week'); ?>
+			</option>
+			<option
+				value="<?php echo $this->getUrl('deals').'?value=1'; if($this->getRequest()->getParam('mode')=='list'):echo '&mode=list';endif; if(isset($ct)):echo '&id='.$ct;endif;?>"
+				<?php if($this->getRequest()->getParam('value')==1):echo ' selected="selected" '; endif;  ?>>
+				<?php echo $this->__('Today'); ?>
+			</option>			
+		</select>
+	</div>
+	<?php endif; ?>
+	<?php endif; ?>
+	<?php // List mode   ?>
+	<?php if ($this->getMode() != 'grid'): ?>
+	<?php $_iterator = 0; ?>
+	<ol class="products-list" id="products-list">
+	<?php foreach ($_productCollection as $_product): ?>
+	<?php $toDate = $_product->getSpecialTODate(); ?>
+		<li
+			class="item<?php if (++$_iterator == sizeof($_productCollection)): ?> last<?php endif; ?>">
+			<?php // Product Image   ?> <a
+			href="<?php echo $_product->getProductUrl() ?>"
+			title="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>"
+			class="product-image"><img
+				src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->resize(135); ?>"
+				width="135" height="135"
+				alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" />
+		</a>
+			<div class="product-shop">
+				<div class="f-fix">
+				<?php $_productNameStripped = $this->stripTags($_product->getName(), null, true); ?>
+					<h2 class="product-name">
+						<a href="<?php echo $_product->getProductUrl() ?>"
+							title="<?php echo $_productNameStripped; ?>"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name'); ?>
+						</a>
+					</h2>
+					<?php if ($_product->getRatingSummary()): ?>
+					<?php echo $this->getReviewsSummaryHtml($_product) ?>
+					<?php endif; ?>
+					<?php echo $this->getPriceHtml($_product, true) ?>
+					<?php
+					// Display the saving amount here
+					$savingsdollarvalue = ($_product->getPrice() - $_product->getFinalPrice());
+					$original_price = $_product->getPrice(); //get orginal price
+					$discount_price = $_product->getFinalPrice(); //get the discount amount
+					$savings = $original_price - $discount_price; //get the saving amount from orginal price - discount price
+					$savings_percentage = round(($savings / $original_price) * 100, 0); //get discount Percentage
+					$productType = $_product->getTypeID();
+					?>
+					<?php if($productType != 'bundle') :?>
+					<?php if (($_product->getPrice()) >($_product->getSpecialPrice())): ?>
+					<div class="price-box deal-price-box" id=second_grid>
+						<p class="special-price">
+							<span class="price-label"> <?php echo $this->__('Save:'); //here i change the special price name ?>
+								<span class="discount_per price"><?php echo $_coreHelper->currency($savingsdollarvalue, true, false); ?>
+							</span> </span>
+						</p>
+						<p class="special-price">
+							<span class="price-label"><?php echo $this->__('Discount:') ?> </span>
+							<span class="price" <?php echo $_id ?>
+							<?php echo $this->getIdSuffix() ?>> <?php echo $savings_percentage, '%'; //display discount amount ?>
+							</span>
+						</p>
+					</div>
+					<?php endif; ?>
+					<?php if ((($_product->getPrice() > $_product->getSpecialPrice())) && ((Mage::helper('superdeals')->isDealzEnabled())) && ((Mage::helper('superdeals')->isTimerEnabled()))) : ?>
+					<?php if (!empty($toDate) && $toDate >= $now) : ?>
+					<?php if ($_product->getSpecialPrice() != 0 || $_product->getSpecialPrice() != "") : ?>
+					<div class="dealtimer_listpage">
+						<div id="countbox<?php echo $count; ?>"
+							class="dealtimer_listpage_timer"></div>
+					</div>
+					<?php endif; ?>
+					<?php elseif ($_product->getSpecialPrice() != 0 && empty($toDate)): ?>
+					<div class="dealtimer_listpage">
+						<div class="dealtimer_listpage_timer">
+						<?php echo $this->__('On Sale!'); ?>
+						</div>
+					</div>
+					<?php endif; ?>
+					<script type="text/javascript">
+                                    var dthen<?php echo $count; ?> = new Date("<?php echo Date("m/d/y", strtotime($toDate)) . ' 11:59:00 PM'; ?>");
+                                    start = "<?php echo Date("m/d/y h:i:s A", strtotime(Mage_Core_Model_Locale::date(null, null, "en_US", true))); ?>";
+                                    start_date = Date.parse(start);
+                                    var dnow<?php echo $count; ?> = new Date(start_date);
+                                    if(CountStepper>0)
+                                        ddiff= new Date((dnow<?php echo $count; ?>)-(dthen<?php echo $count; ?>));
+                                    else
+                                        ddiff = new Date((dthen<?php echo $count; ?>)-(dnow<?php echo $count; ?>));
+                                    gsecs<?php echo $count; ?> = Math.floor(ddiff.valueOf()/1000);
+                                    var iid<?php echo $count; ?> = "countbox<?php echo $count; ?>";
+                                    CountBack(gsecs<?php echo $count; ?>,iid<?php echo $count; ?>, <?php echo $count; ?>);
+                                    j++;
+                                </script>
+                                <?php $count = $count + 1; ?>
+                                <?php endif; ?>
+                                <?php endif; ?>
+                            
+					<div class="desc std">
+					<?php echo $_helper->productAttribute($_product, $_product->getShortDescription(), 'short_description') ?>
+						<a href="<?php echo $_product->getProductUrl() ?>"
+							title="<?php echo $_productNameStripped ?>" class="link-learn"><?php echo $this->__('Learn More') ?>
+						</a>
+					</div>
+					
+					<div class="buttons_wrapper">   <?php if ($_product->isSaleable()): ?>
+					<p>
+						<button type="button"
+							title="<?php echo $this->__('Add to Cart') ?>"
+							class="button btn-cart"
+							onclick="setLocation('<?php echo $this->getAddToCartUrl($_product) ?>')">
+							<span><span><?php echo $this->__('Add to Cart') ?> </span> </span>
+						</button>
+					</p>
+					<?php else: ?>
+					<p class="availability out-of-stock">
+						<span><?php echo $this->__('Out of stock') ?> </span>
+					</p>
+					<?php endif; ?>
+						<ul class="add-to-links">
+					<?php if ($this->helper('wishlist')->isAllow()) : ?>
+						<li><a
+							href="<?php echo $this->helper('wishlist')->getAddUrl($_product) ?>"
+							class="link-wishlist"><?php echo $this->__('Add to Wishlist') ?>
+						</a></li>
+						<?php endif; ?>
+						<?php if ($_compareUrl = $this->getAddToCompareUrl($_product)): ?>
+						<li><span class="separator">|</span> <a
+							href="<?php echo $_compareUrl ?>" class="link-compare"><?php echo $this->__('Add to Compare') ?>
+						</a></li>
+						<?php endif; ?>
+					</ul>
+				
+</div> 
+				</div>
+			</div>
+		</li>
+		<?php endforeach; ?>
+	</ol>
+	<script type="text/javascript">decorateList('products-list', 'none-recursive')</script>
+
+	<?php else: ?>
+	<?php // Grid Mode   ?>
+	<?php $_collectionSize = $_productCollection->count() ?>
+	<?php $_columnCount = $this->getColumnCount(); ?>
+	<?php
+	$i = 0;
+	foreach ($_productCollection as $_product):
+	?>
+	<?php $toDate = $_product->getSpecialTODate(); ?>
+	<?php if ($i++ % $_columnCount == 0): ?>
+	<ul class="products-grid">
+	<?php endif ?>
+		<li
+			class="item<?php if (($i - 1) % $_columnCount == 0): ?> first<?php elseif ($i % $_columnCount == 0): ?> last<?php endif; ?>">
+			<a href="<?php echo $_product->getProductUrl() ?>"
+			title="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>"
+			class="product-image"><img
+				src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->resize(135); ?>"
+				width="135" height="135"
+				alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" />
+		</a>
+			<h2 class="product-name">
+				<a href="<?php echo $_product->getProductUrl() ?>"
+					title="<?php echo $this->stripTags($_product->getName(), null, true) ?>"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?>
+				</a>
+			</h2> <?php if ($_product->getRatingSummary()): ?> <?php echo $this->getReviewsSummaryHtml($_product, 'short') ?>
+			<?php endif; ?> <?php echo $this->getPriceHtml($_product, true) ?> <?php
+			// Display the saving amount here
+			$savingsdollarvalue = ($_product->getPrice() - $_product->getFinalPrice());
+			$original_price = $_product->getPrice(); //get orginal price
+			$discount_price =$_product->getFinalPrice(); //get the discount amount
+			$savings = $original_price - $discount_price; //get the saving amount from orginal price - discount price
+			$savings_percentage = round(($savings / $original_price) * 100, 0); //get discount Percentage
+			$productType = $_product->getTypeID();
+			?> <?php if($productType != 'bundle') :?> <?php if (($_product->getPrice()) >($_product->getSpecialPrice())): ?>
+			<div class="price-box deal-price-box" id="second_grid">
+				<p class="special-price">
+					<span class="price-label"> <?php echo $this->__('Save:'); ?> </span>
+					<span class="price" <?php echo $_id ?>
+					<?php echo $this->getIdSuffix() ?>> <?php echo $_coreHelper->currency($savingsdollarvalue, true, false); ?>
+					</span>
+				</p>
+				<p class="special-price">
+					<span class="price-label"><?php echo $this->__('Discount:') ?> </span>
+					<span class="price"> <?php echo $savings_percentage, '%'; //display discount amount ?>
+					</span>
+				</p>
+			</div> <?php endif; ?> <?php if ((($_product->getPrice() > $_product->getSpecialPrice())) && ((Mage::helper('superdeals')->isDealzEnabled())) && ((Mage::helper('superdeals')->isTimerEnabled()))) : ?>
+			<?php if (!empty($toDate) && $toDate >= $now) : ?> <?php if ($_product->getSpecialPrice() != 0 || $_product->getSpecialPrice() != "" || $_product->getTypeID() == 'bundle'): ?>
+			<div class="dealtimer_listpage">
+				<div id="countbox<?php echo $count; ?>"
+					class="dealtimer_listpage_timer"></div>
+			</div> <?php endif; ?> <?php elseif ($_product->getSpecialPrice() != 0 && empty($toDate)): ?>
+			<div class="dealtimer_listpage">
+				<div class="dealtimer_listpage_timer">
+				<?php echo $this->__('On Sale!'); ?>
+				</div>
+			</div> <?php endif; ?> <?php endif; ?> <script type="text/javascript">
+                            var dthen<?php echo $count; ?> = new Date("<?php echo Date("m/d/y", strtotime($toDate)) . ' 11:59:00 PM'; ?>");
+                            start = "<?php echo Date("m/d/y h:i:s A", strtotime(Mage_Core_Model_Locale::date(null, null, "en_US", true))); ?>";
+                            start_date = Date.parse(start);
+                            var dnow<?php echo $count; ?> = new Date(start_date);
+                            if(CountStepper>0)
+                                ddiff= new Date((dnow<?php echo $count; ?>)-(dthen<?php echo $count; ?>));
+                            else
+                                ddiff = new Date((dthen<?php echo $count; ?>)-(dnow<?php echo $count; ?>));
+                            gsecs<?php echo $count; ?> = Math.floor(ddiff.valueOf()/1000);
+                            var iid<?php echo $count; ?> = "countbox<?php echo $count; ?>";
+                            CountBack(gsecs<?php echo $count; ?>,iid<?php echo $count; ?>, <?php echo $count; ?>);
+                            j++;
+                        </script> <?php $count = $count + 1; ?> <?php endif; ?>
+			<div class="actions">
+			<?php if ($_product->isSaleable()): ?>
+				<button type="button" title="<?php echo $this->__('Add to Cart') ?>"
+					class="button btn-cart"
+					onclick="setLocation('<?php echo $this->getAddToCartUrl($_product) ?>')">
+					<span><span><?php echo $this->__('Add to Cart') ?> </span> </span>
+				</button>
+				<?php else: ?>
+				<p class="availability out-of-stock">
+					<span><?php echo $this->__('Out of stock') ?> </span>
+				</p>
+				<?php endif; ?>
+				<ul class="add-to-links">
+				<?php if ($this->helper('wishlist')->isAllow()) : ?>
+					<li><a
+						href="<?php echo $this->helper('wishlist')->getAddUrl($_product) ?>"
+						class="link-wishlist"><?php echo $this->__('Add to Wishlist') ?> </a>
+					</li>
+					<?php endif; ?>
+					<?php if ($_compareUrl = $this->getAddToCompareUrl($_product)): ?>
+					<li><span class="separator">|</span> <a
+						href="<?php echo $_compareUrl ?>" class="link-compare"><?php echo $this->__('Add to Compare') ?>
+					</a></li>
+					<?php endif; ?>
+				</ul>
+			</div>
+		</li>
+		<?php if ($i % $_columnCount == 0 || $i == $_collectionSize): ?>
+	</ul>
+	<?php endif ?>
+	<?php endforeach ?>
+	<script type="text/javascript">decorateGeneric($$('ul.products-grid'), ['odd','even','first','last'])</script>
+	<?php endif; ?>
+	<div>
+	<?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('deals_offer')->toHtml();?>
+	</div>
+	<div class="toolbar-bottom">
+	<?php echo $this->getToolbarHtml() ?>
+	</div>
+</div>
+	<?php endif; ?>
+	<?php endif ?>

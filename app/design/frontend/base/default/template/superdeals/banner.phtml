@@ -1,0 +1,139 @@
+<?php
+/**
+ * Apptha
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the EULA
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://www.apptha.com/LICENSE.txt
+ *
+ * ==============================================================
+ *                 MAGENTO EDITION USAGE NOTICE
+ * ==============================================================
+ * This package designed for Magento COMMUNITY edition
+ * Apptha does not guarantee correct work of this extension
+ * on any other Magento edition except Magento COMMUNITY edition.
+ * Apptha does not provide extension support in case of
+ * incorrect edition usage.
+ * ==============================================================
+ *
+ * @category    Apptha
+ * @package     Apptha_SuperDeals
+ * @version    0.1.2
+ * @author      Apptha Team <developers@contus.in>
+ * @copyright   Copyright (c) 2014 Apptha. (http://www.apptha.com)
+ * @license     http://www.apptha.com/LICENSE.txt
+ * 
+ */
+?>
+<?php
+/**
+ * Template for displaying product price in different places (products grid, product view page etc)
+ *
+ * @see Mage_Catalog_Block_Product_Abstract
+ */
+?>
+<?php
+/* Count for timer calculation declared here */
+$_productsCollections	= $this->getProductCollection();
+$_helper 				= $this->helper('catalog/output');
+$_coreHelper 			= $this->helper('core');
+$count		 			= Mage::helper('superdeals')->getOfferSlider();
+?>
+
+<?php
+$STORE_CONFIG_DEALS_ENABLED  = Mage::getStoreConfig('superdeals/superdeals_group/deals_enable');
+$dealsEnable  				 = Mage::helper('core/data')->isModuleEnabled('Apptha_Superdeals');
+$dealsEnable 				 = intval($dealsEnable);
+$STORE_CONFIG_SLIDER_ENABLED = Mage::getStoreConfig('superdeals/slider/enable_slide');
+$advanceOption				 = Mage::getStoreConfig('advanced/modules_disable_output/Apptha_Superdeals');
+$advanceOption 				 = intval($advanceOption);
+?>
+<?php if($_productsCollections->count()):?>
+<?php if (($STORE_CONFIG_DEALS_ENABLED == 1) && ($STORE_CONFIG_SLIDER_ENABLED == 1) && ( $dealsEnable == 1)&& ( $advanceOption == 0)): ?>
+<script type="text/javascript">
+document.observe("dom:loaded", function() {
+	var priNav = $('primary-navigation');
+
+	priNav.observe('click', function(e) {
+		var ele = e.element();
+		if(ele.nodeName.toLowerCase() != 'a') {
+			ele = ele.up('a');
+		}
+		if (!ele.hasClassName('no-scroll') ) {
+			e.stop();
+			Effect.ScrollTo($(ele.hash.substr(1)));
+		}
+	});
+});
+
+Event.observe(window, 'dom:loaded', function() {
+	var primaryShow = new protoShow('primary-show', {
+			captions			: false,
+			controls			: true,
+			transitionType		: "slide"
+
+	});
+});
+
+document.observe('dom:loaded', function() {
+    // reference ID of our show container
+    var show = new protoShow('primary-show');
+});
+</script>
+<div class="deal_slider">
+<div id="primary-show" class="transition-slide">
+	<a href="javascript:void(0)"
+		onclick="document.getElementById('primary-show').style.display='none'"><span
+		class="close"></span> </a>
+	<div class="primary-show-container">
+
+		<h2 class="banner_title">
+		<?php echo $this->__('Have you checked out this offer?') ?>
+		</h2>
+
+		<ul class="show">
+		<?php foreach ($_productsCollections as $_products): ?>
+		<?php		// Display the saving amount here
+		$savingsdollarvalue = ($_products->getPrice() - $_products->getFinalPrice());
+		$original_price 	= $_products->getPrice(); //get orginal price
+		$discount_price 	= $_products->getFinalPrice(); //get the discount amount
+		$savings			= $original_price - $discount_price; //get the saving amount from orginal price - discount price
+		$savings_percentage = round(($savings / $original_price) * 100, 0); //get discount Percentage
+		$productType 		= $_products->getTypeID();?>
+			<li class="slide">
+				<div class="banner_slide_image">
+					<a href="<?php echo $_products->getProductUrl() ?>"
+						title="<?php echo $this->stripTags($this->getImageLabel($_products, 'small_image'), null, true) ?>"
+						class="product-image"><img
+						src="<?php echo $this->helper('catalog/image')->init($_products, 'small_image')->resize(65); ?>"
+						width="65" height="65"
+						alt="<?php echo $this->stripTags($this->getImageLabel($_products, 'small_image'), null, true) ?>" />
+					</a>
+				</div>
+				<div class="banner_slide_desc">
+					<h2 class="product-name">
+						<a href="<?php echo $_products->getProductUrl() ?>"
+							title="<?php echo $this->stripTags($_products->getName(), null, true) ?>"><?php echo $_helper->productAttribute($_products, $_products->getName(), 'name') ?>
+						</a>
+					</h2>
+					<p class="special-price">
+						<span class="price-label"><?php echo $this->__('Discount:') ?> </span>
+						<span class="price"> <?php echo $savings_percentage, '%'; //display discount amount ?>
+						</span>
+					</p>
+				</div>
+			</li>
+			<?php  endforeach; ?>
+		</ul>
+
+
+
+
+	</div>
+
+</div></div>
+			<?php endif ?>
+			<?php endif ?>
